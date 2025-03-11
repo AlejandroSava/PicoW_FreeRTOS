@@ -49,6 +49,14 @@ export FREERTOS_KERNEL_PATH=~/pico/libs/FreeRTOS-Kernel
 echo "export FREERTOS_KERNEL_PATH=~/pico/libs/FreeRTOS-Kernel" >> ~/.bashrc
 source ~/.bashrc
 ```
+### **6️⃣ Build your project**
+```bash
+mkdir -p build
+cd build
+cmake ..
+make -j$(nproc)
+```
+
 
 ---
 
