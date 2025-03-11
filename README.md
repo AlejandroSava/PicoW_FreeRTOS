@@ -1,5 +1,5 @@
 # 🚀 PicoW FreeRTOS
-
+@Alejandro Salinas V.
 Welcome to my **PicoW FreeRTOS** repository! 🎯 This repo is dedicated to tracking my projects related to **real-time systems**. 🕒⚡
 -> Raspberry Pico W and FreeRTOS
 
