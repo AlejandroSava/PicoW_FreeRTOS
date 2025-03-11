@@ -1,4 +1,4 @@
 # Ignore a specific folder
-./build
+build/
 
 
