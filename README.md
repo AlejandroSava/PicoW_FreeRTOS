@@ -5,7 +5,7 @@
 Welcome to my **PicoW FreeRTOS** repository! 🎯 This repo is dedicated to tracking my projects related to **real-time systems**. 🕒⚡
 -> Raspberry Pico W and FreeRTOS
 
-> 💡 *Inspired by:* [RPI-pico-FreeRTOS](https://github.com/PicoCPP/RPI-pico-FreeRTOS/tree/master)
+> 💡 *Inspired by:* [PicoW-FreeRTOS-Template](https://github.com/racka98/PicoW-FreeRTOS-Template)
 
 ---
 
