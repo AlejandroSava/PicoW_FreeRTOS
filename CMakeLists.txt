@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
 
-# Set the project name
-
-
 # Set the board used
 set(PICO_BOARD pico_w)
 
@@ -29,6 +26,7 @@ add_executable(${PROJECT_NAME}
     ./src/blink.c        # MAIN FILE TO COMPILE
 )
 
+
 # Pull in common dependencies
 target_link_libraries(${PROJECT_NAME}
     pico_stdlib                                 # Core functionality       
@@ -48,7 +46,4 @@ pico_enable_stdio_uart(${PROJECT_NAME} 0)
 # Create map/bin/hex file etc.
 pico_add_extra_outputs(${PROJECT_NAME})
 
-# Include necessary directories
-target_include_directories(${PROJECT_NAME} 
-    PRIVATE ${CMAKE_CURRENT_LIST_DIR}/configs/lwip
-)
+
