@@ -6,7 +6,7 @@
 
 // FreeRTOS task to blink the onboard LED
 void vBlinkTask(void *pvParameters) {
-    while (1) {
+    while (1) { // Keeps the task running forever.
         // Turn the onboard LED ON
         cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
         vTaskDelay(pdMS_TO_TICKS(1000));  // Wait for 1 second
@@ -33,5 +33,5 @@ int main() {
     // Start the FreeRTOS scheduler (manages all tasks)
     vTaskStartScheduler();
 
-    while (1);  // Infinite loop (should never reach this point)
+    while (1);  // Infinite loop (should never reach this point), Prevents main() from exiting after FreeRTOS starts.
 }
