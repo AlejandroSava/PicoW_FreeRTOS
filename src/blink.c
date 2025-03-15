@@ -1,41 +1,37 @@
-#include <stdio.h>
-#include "pico/stdlib.h"
-#include "pico/cyw43_arch.h" 
-#include "FreeRTOS.h"
-#include "task.h"
+#include <stdio.h>  // Standard C library for input/output
+#include "pico/stdlib.h"  // Standard Pico SDK functions (GPIO, UART, etc.)
+#include "pico/cyw43_arch.h"  // Wi-Fi driver for CYW43 chip (includes onboard LED control)
+#include "FreeRTOS.h"  // FreeRTOS core library
+#include "task.h"  // FreeRTOS task management functions
 
-#define LED_PIN 2  // External LED on GPIO 2
-
+// FreeRTOS task to blink the onboard LED
 void vBlinkTask(void *pvParameters) {
-    // Initialize external LED (GPIO 2)
-    gpio_init(LED_PIN);
-    gpio_set_dir(LED_PIN, GPIO_OUT);
-
     while (1) {
-        // Blink External LED
-        gpio_put(LED_PIN, 1);
-        // Blink Onboard LED
-        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);  // Turn Onboard LED OFF
-        vTaskDelay(pdMS_TO_TICKS(200));
-
-        gpio_put(LED_PIN, 0);
-        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);  // Turn Onboard LED ON
-        vTaskDelay(pdMS_TO_TICKS(200));
+        // Turn the onboard LED ON
+        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
+        vTaskDelay(pdMS_TO_TICKS(1000));  // Wait for 1 second
+        
+        // Turn the onboard LED OFF
+        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));  // Wait for 1 second
     }
 }
 
 int main() {
-    stdio_init_all();
+    stdio_init_all();  // Initialize standard input/output for debugging
 
-    // Initialize WiFi driver (needed for CYW43 onboard LED)
+    // Initialize the Wi-Fi driver (CYW43 needed for controlling onboard LED)
     if (cyw43_arch_init()) {
-        printf("Failed to initialize CYW43\n");
-        return 1;
+        printf("Failed to initialize CYW43\n");  // Print error message if initialization fails
+        return 1;  // Exit program
     }
 
-    // Create FreeRTOS LED Task
+    // Create a FreeRTOS task for LED blinking
     xTaskCreate(vBlinkTask, "Blink Task", 512, NULL, 1, NULL);
+    // Task function, Name of the task, Stack size , Pointer to parameters passed to task, Task priority , Task handle
+    
+    // Start the FreeRTOS scheduler (manages all tasks)
     vTaskStartScheduler();
 
-    while (1);  // Should never reach here
+    while (1);  // Infinite loop (should never reach this point)
 }
