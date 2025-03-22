@@ -1,5 +1,5 @@
 /*
-    Practice 1. Semaphore Control
+    Practice 2. Semaphore Control
     I developed the control of two semaphores using multitasking 
     By: @Alejandro Salinas V.
 */
@@ -99,8 +99,9 @@ int main() {
 
     init_gpio();
     printf("Starting the Semaphores \n");
-    xTaskCreate(vSemaphore_1, "Semaphore 1", 512, NULL, 1, NULL); //lower priority
+    
     xTaskCreate(vSemaphore_2, "Semaphore 1", 512, NULL, 2, NULL); //higher priority
+    xTaskCreate(vSemaphore_1, "Semaphore 1", 512, NULL, 1, NULL); //lower priority
     // Task function, Name of the task, Stack size , Pointer to parameters passed to task, Task priority , Task handle
     
     // Start the FreeRTOS scheduler (manages all tasks)
