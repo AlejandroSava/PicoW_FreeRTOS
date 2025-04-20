@@ -36,6 +36,7 @@ foreach(SOURCE_FILE ${SOURCE_FILES})
     # Link dependencies (adjust as needed)
     target_link_libraries(${FILE_NAME}
         pico_stdlib
+        hardware_pwm
         FreeRTOS-Kernel-Heap4
         hardware_i2c
         hardware_adc
@@ -43,6 +44,12 @@ foreach(SOURCE_FILE ${SOURCE_FILES})
         FREERTOS_PORT
         pico_lwip_nosys
         pico_cyw43_arch_lwip_threadsafe_background
+        pico_lwip_iperf   
+             
+        
+        #pico_cyw43_arch_lwip_poll
+        #pico_wifi_freertos
+        
     )
 
     # Enable USB stdio & disable UART
