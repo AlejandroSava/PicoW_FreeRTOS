@@ -44,7 +44,8 @@ foreach(SOURCE_FILE ${SOURCE_FILES})
         FREERTOS_PORT
         pico_lwip_nosys
         pico_cyw43_arch_lwip_threadsafe_background
-        pico_lwip_iperf   
+        pico_lwip_iperf
+        pico_multicore   
              
         
         #pico_cyw43_arch_lwip_poll
