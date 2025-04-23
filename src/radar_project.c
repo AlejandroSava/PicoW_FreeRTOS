@@ -35,6 +35,7 @@ typedef struct {
 
 QueueHandle_t xRadarQueue;
 static struct tcp_pcb *client_pcb = NULL;
+static bool data_sent = true;
 
 // ---- ULTRASONIC SENSOR FUNCTION ----
 float measure_distance_cm() {
@@ -47,6 +48,7 @@ float measure_distance_cm() {
         if (absolute_time_diff_us(start_time, get_absolute_time()) > 30000)
             return -1; // Timeout
     }
+
     absolute_time_t echo_start = get_absolute_time();
     while (gpio_get(ECHO_PIN) == 1);
     absolute_time_t echo_end = get_absolute_time();
@@ -70,27 +72,23 @@ void vRadarScanTask(void *pvParameters) {
 
     while (1) {
         for (int angle = 0; angle <= 180; angle += 10) {
-            // Move servo
             pwm_set_chan_level(slice, chan, angle_to_level(wrap, angle));
-            vTaskDelay(pdMS_TO_TICKS(400));  // Allow servo to stabilize
+            vTaskDelay(pdMS_TO_TICKS(400));
+            float dist = measure_distance_cm();
+            vTaskDelay(pdMS_TO_TICKS(200));
 
-            // Retry ultrasonic read up to 3 times
-            float dist = -1.0f;
-            for (int i = 0; i < 3; i++) {
-                dist = measure_distance_cm();
-                if (dist > 0) break;
-                vTaskDelay(pdMS_TO_TICKS(100));
+            if (dist > 0 && dist < 400) {
+                radar_data_t data = {.angle = angle, .distance = dist};
+                xQueueSend(xRadarQueue, &data, 0);
+                printf("Angle: %d | Distance: %.2f cm\n", angle, dist);
             }
-
-            radar_data_t data = {.angle = angle, .distance = dist};
-            xQueueSend(xRadarQueue, &data, 0);
-            printf("Angle: %d | Distance: %.2f cm\n", angle, dist);
         }
     }
 }
 
-// ---- TCP SEND CALLBACKS ----
+// ---- TCP CALLBACKS ----
 err_t tcp_sent_cb(void *arg, struct tcp_pcb *tpcb, u16_t len) {
+    data_sent = true;
     return ERR_OK;
 }
 
@@ -128,21 +126,26 @@ void vTcpSenderTask(void *pvParameters) {
         printf("Wi-Fi connection failed\n");
         vTaskDelete(NULL);
     }
+
     printf("Wi-Fi connected\n");
     connect_to_server();
 
     while (1) {
         radar_data_t data;
         if (xQueueReceive(xRadarQueue, &data, portMAX_DELAY)) {
-            if (client_pcb) {
+            if (client_pcb && data_sent) {
                 char msg[64];
                 snprintf(msg, sizeof(msg), "Angle: %d, Distance: %.2f cm\n", data.angle, data.distance);
                 err_t err = tcp_write(client_pcb, msg, strlen(msg), TCP_WRITE_FLAG_COPY);
-                if (err == ERR_OK) tcp_output(client_pcb);
-                vTaskDelay(pdMS_TO_TICKS(200)); 
+                if (err == ERR_OK) {
+                    tcp_output(client_pcb);
+                    data_sent = false;  // wait for confirmation
+                } else {
+                    printf("tcp_write error: %d\n", err);
+                }
             }
         }
-        vTaskDelay(pdMS_TO_TICKS(100));
+        vTaskDelay(pdMS_TO_TICKS(150));
     }
 }
 
@@ -150,19 +153,18 @@ void vTcpSenderTask(void *pvParameters) {
 int main() {
     stdio_init_all();
 
-    // Init GPIOs
     gpio_init(TRIG_PIN);
     gpio_set_dir(TRIG_PIN, GPIO_OUT);
     gpio_put(TRIG_PIN, 0);
+
     gpio_init(ECHO_PIN);
     gpio_set_dir(ECHO_PIN, GPIO_IN);
 
-    // PWM for servo
     gpio_set_function(SERVO_PIN, GPIO_FUNC_PWM);
     uint slice = pwm_gpio_to_slice_num(SERVO_PIN);
     pwm_config cfg = pwm_get_default_config();
-    pwm_config_set_clkdiv(&cfg, 125.0f);  // 1MHz
-    pwm_config_set_wrap(&cfg, 20000);     // 20ms
+    pwm_config_set_clkdiv(&cfg, 125.0f);
+    pwm_config_set_wrap(&cfg, 20000);
     pwm_init(slice, &cfg, true);
 
     xRadarQueue = xQueueCreate(10, sizeof(radar_data_t));
